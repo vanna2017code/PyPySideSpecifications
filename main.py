@@ -5,7 +5,7 @@ import psutil
 import cpuinfo
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout,
-    QTextEdit, QTabWidget
+    QTextEdit, QTabWidget, QPushButton
 )
 
 # Optional imports
@@ -135,27 +135,33 @@ class SpecShower(QMainWindow):
         self.resize(900, 700)
 
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(get_cpu_info()), "CPU")
-        tabs.addTab(self.create_tab(get_gpu_info()), "GPU")
-        tabs.addTab(self.create_tab(get_ram_info()), "RAM")
-        tabs.addTab(self.create_tab(get_storage_info()), "Storage")
-        tabs.addTab(self.create_tab(get_smart_info()), "Disk SMART")
-        tabs.addTab(self.create_tab(get_network_info()), "Network")
-        tabs.addTab(self.create_tab(get_motherboard_info()), "Motherboard")
-        tabs.addTab(self.create_tab(get_tpm_info()), "TPM")
-        tabs.addTab(self.create_tab(get_bluetooth_info()), "Bluetooth")
-        tabs.addTab(self.create_tab(get_wifi_info()), "WiFi")
-        tabs.addTab(self.create_tab(get_sim_info()), "SIM")
+        tabs.addTab(self.create_tab(get_cpu_info), "CPU")
+        tabs.addTab(self.create_tab(get_gpu_info), "GPU")
+        tabs.addTab(self.create_tab(get_ram_info), "RAM")
+        tabs.addTab(self.create_tab(get_storage_info), "Storage")
+        tabs.addTab(self.create_tab(get_smart_info), "Disk SMART")
+        tabs.addTab(self.create_tab(get_network_info), "Network")
+        tabs.addTab(self.create_tab(get_motherboard_info), "Motherboard")
+        tabs.addTab(self.create_tab(get_tpm_info), "TPM")
+        tabs.addTab(self.create_tab(get_bluetooth_info), "Bluetooth")
+        tabs.addTab(self.create_tab(get_wifi_info), "WiFi")
+        tabs.addTab(self.create_tab(get_sim_info), "SIM")
 
         self.setCentralWidget(tabs)
 
     def create_tab(self, info_func):
         widget = QWidget()
         layout = QVBoxLayout()
+
         text = QTextEdit()
         text.setReadOnly(True)
         text.setText(info_func())
+
+        refresh_btn = QPushButton("Refresh")
+        refresh_btn.clicked.connect(lambda: text.setText(info_func()))
+
         layout.addWidget(text)
+        layout.addWidget(refresh_btn)
         widget.setLayout(layout)
         return widget
 
