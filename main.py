@@ -5,7 +5,7 @@ import psutil
 import cpuinfo
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout,
-    QTextEdit, QTabWidget, QPushButton
+    QTextEdit, QTabWidget
 )
 
 # Optional imports
@@ -127,27 +127,46 @@ def get_sim_info():
     except Exception as e:
         return f"SIM info not available: {e}"
 
-
 class SpecShower(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("System Specification Shower")
         self.resize(900, 700)
 
-        tabs = QTabWidget()
-        tabs.addTab(self.create_tab(get_cpu_info), "CPU")
-        tabs.addTab(self.create_tab(get_gpu_info), "GPU")
-        tabs.addTab(self.create_tab(get_ram_info), "RAM")
-        tabs.addTab(self.create_tab(get_storage_info), "Storage")
-        tabs.addTab(self.create_tab(get_smart_info), "Disk SMART")
-        tabs.addTab(self.create_tab(get_network_info), "Network")
-        tabs.addTab(self.create_tab(get_motherboard_info), "Motherboard")
-        tabs.addTab(self.create_tab(get_tpm_info), "TPM")
-        tabs.addTab(self.create_tab(get_bluetooth_info), "Bluetooth")
-        tabs.addTab(self.create_tab(get_wifi_info), "WiFi")
-        tabs.addTab(self.create_tab(get_sim_info), "SIM")
+        # Tabs
+        self.tabs = QTabWidget()
+        self.info_funcs = [
+            get_cpu_info,
+            get_gpu_info,
+            get_ram_info,
+            get_storage_info,
+            get_smart_info,
+            get_network_info,
+            get_motherboard_info,
+            get_tpm_info,
+            get_bluetooth_info,
+            get_wifi_info,
+            get_sim_info,
+        ]
 
-        self.setCentralWidget(tabs)
+        # Keep references to text widgets for refresh
+        self.text_widgets = []
+        for func, name in zip(self.info_funcs,
+                              ["CPU","GPU","RAM","Storage","Disk SMART","Network",
+                               "Motherboard","TPM","Bluetooth","WiFi","SIM"]):
+            self.tabs.addTab(self.create_tab(func), name)
+
+        # Global refresh button
+        refresh_all_btn = QPushButton("Refresh All")
+        refresh_all_btn.clicked.connect(self.refresh_all)
+
+        # Layout
+        container = QWidget()
+        layout = QVBoxLayout()
+        layout.addWidget(self.tabs)
+        layout.addWidget(refresh_all_btn)
+        container.setLayout(layout)
+        self.setCentralWidget(container)
 
     def create_tab(self, info_func):
         widget = QWidget()
@@ -163,7 +182,14 @@ class SpecShower(QMainWindow):
         layout.addWidget(text)
         layout.addWidget(refresh_btn)
         widget.setLayout(layout)
+
+        # Save reference for global refresh
+        self.text_widgets.append((text, info_func))
         return widget
+
+    def refresh_all(self):
+        for text, func in self.text_widgets:
+            text.setText(func())
 
 
 if __name__ == "__main__":
