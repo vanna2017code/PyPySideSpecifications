@@ -5,7 +5,7 @@ import psutil
 import cpuinfo
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout,
-    QTextEdit, QTabWidget
+    QTextEdit, QTabWidget, QPushButton
 )
 
 # Optional imports
@@ -80,23 +80,35 @@ def get_motherboard_info():
     return "Motherboard info not available."
 
 
+import platform
+
 def get_tpm_info():
     if platform.system() == "Windows":
         try:
-            result = subprocess.run(
-                ["powershell", "-Command", "Get-WmiObject -Namespace 'Root\\CIMv2\\Security\\MicrosoftTpm'"],
-                capture_output=True, text=True
-            )
-            return result.stdout
+            import wmi
+            # Connect to the TPM namespace
+            c = wmi.WMI(namespace="root\\CIMV2\\Security\\MicrosoftTpm")
+            
+            # Query TPM info
+            info = []
+            for tpm in c.Win32_Tpm():
+                info.append(f"Spec Version: {tpm.SpecVersion}")
+                info.append(f"Manufacturer ID: {tpm.ManufacturerID}")
+                info.append(f"Manufacturer Version: {tpm.ManufacturerVersion}")
+                info.append(f"Enabled: {tpm.IsEnabled_InitialValue}")
+                info.append(f"Activated: {tpm.IsActivated_InitialValue}")
+            return "\n".join(info) if info else "No TPM information found."
         except Exception as e:
             return f"TPM info not available: {e}"
     elif platform.system() == "Linux":
         try:
+            import subprocess
             result = subprocess.run(["tpm2_getrandom", "8"], capture_output=True, text=True)
             return "TPM available: " + result.stdout
         except Exception as e:
             return f"TPM info not available: {e}"
     return "TPM info not available."
+
 
 
 def get_bluetooth_info():
