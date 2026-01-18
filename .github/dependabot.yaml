@@ -1,0 +1,8 @@
+version: 2
+updates:
+  # Keep Python dependencies up to date
+  - package-ecosystem: "pip"
+    directory: "/"          # Root directory where requirements.txt lives
+    schedule:
+      interval: "weekly"    # Options: daily, weekly, monthly
+    open-pull-requests-limit: 5
